@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_celery_beat',
     'django_celery_results',
+    'stock_crawler.apps.StockCrawlerConfig',
 ]
 
 MIDDLEWARE = [
@@ -131,8 +132,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'stock_crawler.exception_handler.custom_exception_handler'
 }
 
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend',
-                           'switch.utils.backends.DesBackend']
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
