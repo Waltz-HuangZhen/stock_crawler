@@ -94,3 +94,24 @@ class FundType(models.Model):
 
     def __str__(self):
         return self.name + '-' + self.short_name
+
+
+class FundCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=100)
+    short_name = models.CharField(max_length=100)
+    pinyin_name = models.CharField(max_length=200)
+    fund_type = models.CharField(max_length=20)
+    # models.ForeignKey(FundType, related_name='fund_type', on_delete=models.CASCADE)
+    is_removed = models.BooleanField(default=False)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'FundCode'
+        ordering = ('code',)
+        verbose_name = 'FundCode'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.code + ': ' + self.name
