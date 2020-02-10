@@ -129,7 +129,7 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),  # filter
     'NON_FIELD_ERRORS_KEY': 'detail',
-    'EXCEPTION_HANDLER': 'stock_crawler.exception_handler.custom_exception_handler'
+    # 'EXCEPTION_HANDLER': 'stock_crawler.utils.exception_handler.custom_exception_handler'
 }
 
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
