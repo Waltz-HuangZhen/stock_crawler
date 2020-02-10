@@ -1,0 +1,11 @@
+INSERT INTO FundType
+(name, short_name, created_date, updated_date)
+VALUES
+('所有', 'all', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('股票型', 'gp', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('混合型', 'hh', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('债券型', 'zq', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('指数型', 'zs', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('保本型', 'bb', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('QDII', 'qdii', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+('LOF', 'lof', UTC_TIMESTAMP(), UTC_TIMESTAMP());

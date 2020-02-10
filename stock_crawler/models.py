@@ -78,3 +78,19 @@ class Log(models.Model):
                 return value
             return wrapper
         return decorator
+
+
+class FundType(models.Model):
+    name = models.CharField(max_length=20)
+    short_name = models.CharField(max_length=20)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'FundType'
+        ordering = ('id',)
+        verbose_name = 'FundType'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name + '-' + self.short_name
