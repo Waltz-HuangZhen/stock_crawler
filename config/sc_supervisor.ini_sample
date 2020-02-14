@@ -1,0 +1,12 @@
+[program:stock_crawler]
+user = root
+command={UWSGI_BIN_PATH}/uwsgi --ini /etc/supervisord.d/uwsgi/sc_uwsgi.ini
+autostart=true
+autorestart=true
+stderr_logfile = {LOG_FILE_PATH}/sc_uwsgi_err.log
+stdout_logfile = {LOG_FILE_PATH}/sc_uwsgi_out.log
+stopsignal=INT
+logfile_maxbytes=20MB
+logfile_backups=10
+stopasgroup=true
+killasgroup=true

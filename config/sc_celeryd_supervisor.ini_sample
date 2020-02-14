@@ -1,0 +1,64 @@
+[program:sc_basic_celery_worker]
+user = root
+directory={PROJECT_ROOT_PATH}
+command={CELERY_BIN_PATH}/celery -A stock_crawler worker -l info -c 1 -Q sc_basic --purge
+stdout_logfile={LOG_FILE_PATH}/celery_sc_basic_out.log
+stderr_logfile={LOG_FILE_PATH}/celery_sc_basic_err.log
+autostart=true
+autorestart=true
+logfile_maxbytes=20MB
+logfile_backups=10
+stopasgroup=true
+killasgroup=true
+
+[program:sc_crawler_celery_worker]
+user = root
+directory={PROJECT_ROOT_PATH}
+command={CELERY_BIN_PATH}/celery -A stock_crawler worker -l info -c 2 -Q sc_crawler -O fair --purge
+stdout_logfile={LOG_FILE_PATH}/celery_sc_crawler_out.log
+stderr_logfile={LOG_FILE_PATH}/celery_sc_crawler_err.log
+autostart=true
+autorestart=true
+logfile_maxbytes=20MB
+logfile_backups=10
+stopasgroup=true
+killasgroup=true
+
+[program:sc_fund_crawler_celery_worker]
+user = root
+directory={PROJECT_ROOT_PATH}
+command={CELERY_BIN_PATH}/celery -A stock_crawler worker -l info -c 2 -Q sc_fund_crawler -O fair --purge
+stdout_logfile={LOG_FILE_PATH}/celery_sc_fund_crawler_out.log
+stderr_logfile={LOG_FILE_PATH}/celery_sc_fund_crawler_err.log
+autostart=true
+autorestart=true
+logfile_maxbytes=20MB
+logfile_backups=10
+stopasgroup=true
+killasgroup=true
+
+[program:sc_fund_page_crawler_celery_worker]
+user = root
+directory={PROJECT_ROOT_PATH}
+command={CELERY_BIN_PATH}/celery -A stock_crawler worker -l info -c 15 -Q sc_fund_page_crawler -O fair --purge
+stdout_logfile={LOG_FILE_PATH}/celery_sc_fund_page_crawler_out.log
+stderr_logfile={LOG_FILE_PATH}/celery_sc_fund_page_crawler_err.log
+autostart=true
+autorestart=true
+logfile_maxbytes=20MB
+logfile_backups=10
+stopasgroup=true
+killasgroup=true
+
+[program:sc_celery_beat]
+user = root
+directory={PROJECT_ROOT_PATH}
+command={CELERY_BIN_PATH}/celery -A stock_crawler beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+stdout_logfile={LOG_FILE_PATH}/celery_sc_beat_out.log
+stderr_logfile={LOG_FILE_PATH}/celery_sc_beat_err.log
+autostart=true
+autorestart=true
+logfile_maxbytes=20MB
+logfile_backups=10
+stopasgroup=true
+killasgroup=true

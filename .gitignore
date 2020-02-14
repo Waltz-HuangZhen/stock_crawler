@@ -109,3 +109,6 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
+# config
+*.ini

@@ -1,0 +1,16 @@
+[uwsgi]
+chdir = {PROJECT_ROOT_PATH}
+module = stock_crawler.wsgi:application
+master = true
+pidfile = /tmp/stock_crawler.pid
+
+processes = 4                   # 进程数
+threads = 10                    # 线程数
+max-requests = 500              # 最大请求数
+idle = 2048                     # 最大延迟
+buffer-size = 32768             # 缓存
+lazy-apps = true
+uid = root
+gid = root
+
+http = 127.0.0.1:9000
