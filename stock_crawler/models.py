@@ -115,3 +115,27 @@ class FundCode(models.Model):
 
     def __str__(self):
         return self.code + ': ' + self.name
+
+
+class FundCodeDayWorth(models.Model):
+    fund_code = models.ForeignKey(FundCode, related_name='fund_code', on_delete=models.CASCADE)
+    date = models.DateField(null=False)
+    nav = models.FloatField(null=True)
+    accnav = models.FloatField(null=True)
+    growth_rate = models.FloatField(verbose_name='Growth Rate(%)', null=True)
+    seven_day_annual_yield = models.FloatField(verbose_name='7-day Annual Yield(%)', null=True)
+    ten_thousands_annual = models.FloatField(verbose_name='10,000 Annual', null=True)
+    purchased = models.CharField(max_length=20, null=True)
+    redemption = models.CharField(max_length=20, null=True)
+    dividend = models.CharField(max_length=50, null=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'FundCodeDayWorth'
+        ordering = ('-date', 'fund_code__code')
+        verbose_name = 'FundCodeDayWorth'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return '{:.4f}'.format(self.nav) if self.nav else '0.0'
