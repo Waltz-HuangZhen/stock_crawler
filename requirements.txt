@@ -9,3 +9,4 @@ redis==3.4.1
 django-celery-beat==1.4.0
 django-celery-results==1.2.0
 requests
+lxml==4.5.0
