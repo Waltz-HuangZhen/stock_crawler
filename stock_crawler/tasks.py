@@ -13,7 +13,7 @@ from stock_crawler.celery import app
 from stock_crawler.settings import (
     NORMAL_TASK_TIMELIMIT, NORMAL_TASK_SOFTTIMELIMIT, CRAWLER_TASK_TIMELIMIT, CRAWLER_TASK_SOFTTIMELIMIT
 )
-from stock_crawler.models import Log, FundCode, FundCodeDayWorth
+from stock_crawler.models import Log, FundCode, FundCodeDayWorth, FundType
 from stock_crawler.utils.utils import LogType, requests_retry, MONGODB_STOCK_CRAWLER
 
 
@@ -25,18 +25,23 @@ def create_or_update_fund_code():
         'message': 'Success(total: {}, created: {}, updated: {})'
     }
     created_count = 0
+    fund_type_dict = {}
     try:
         funds_str = requests.get('http://fund.eastmoney.com/js/fundcode_search.js', timeout=60).text
         funds_list = json.loads(funds_str[8:-1])
         count = len(funds_list)
         for fund in funds_list:
+            if fund_type_dict.get(fund[3], None) is None:
+                fund_type_dict[fund[3]], _ = FundType.objects.get_or_create(
+                    name=fund[3], defaults={'name': fund[3]}
+                )
             _, created = FundCode.objects.update_or_create(
                 code=fund[0],
                 defaults={
                     'code': fund[0],
                     'short_name': fund[1],
                     'name': fund[2],
-                    'fund_type': fund[3],
+                    'fund_type': fund_type_dict[fund[3]],
                     'pinyin_name': fund[4]
                 }
             )
