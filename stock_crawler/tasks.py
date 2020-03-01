@@ -3,6 +3,7 @@ import requests
 import json
 import time
 import re
+import hashlib
 
 from lxml import etree
 
@@ -13,7 +14,7 @@ from stock_crawler.settings import (
     NORMAL_TASK_TIMELIMIT, NORMAL_TASK_SOFTTIMELIMIT, CRAWLER_TASK_TIMELIMIT, CRAWLER_TASK_SOFTTIMELIMIT
 )
 from stock_crawler.models import Log, FundCode, FundCodeDayWorth
-from stock_crawler.utils.utils import LogType, requests_retry
+from stock_crawler.utils.utils import LogType, requests_retry, MONGODB_STOCK_CRAWLER
 
 
 @app.task(queue='sc_crawler', soft_time_limit=NORMAL_TASK_SOFTTIMELIMIT, time_limit=NORMAL_TASK_TIMELIMIT)
@@ -172,5 +173,52 @@ def crawl_fund_page(code, data_dict=None, url=None):
     except Exception as e:
         status['message'] = 'Failed to crawl {}. \nError: '.format(code) + e.__repr__()
         status['status'] = LogType.ERROR
+        return status, False
+    return None, True
+
+
+@app.task(queue='sc_fund_page_crawler', soft_time_limit=NORMAL_TASK_SOFTTIMELIMIT, time_limit=NORMAL_TASK_TIMELIMIT)
+@Log.log_this(save_param=True)
+def crawl_fund_page_mongodb(code, data_dict=None, url=None):
+    status = {
+        'status': LogType.INFO,
+        'message': ''
+    }
+    total_times = 10
+    try:
+        if url is not None:
+            time.sleep(random.randint(0, 15) / 10)
+            response_status, response = requests_retry(url, total_times=total_times)
+            if response_status is not True:
+                status['message'] = 'Failed to crawl {}. URL: {} \nError: {}'.format(
+                    code, url, response if response_status is None else response.text
+                )
+                status['status'] = LogType.ERROR
+                return status, False
+            data_dict = json.loads(re.sub('([ ,])([a-zA-Z]*?):', '\g<1>"\g<2>":', response.text[12:-1]))
+        if data_dict is not None:
+            html_data = etree.HTML(data_dict['content'])
+            data_key = [str(dk.xpath('string(.)')) for dk in html_data.xpath('//table/thead//th')]
+            for html_col in html_data.xpath('//table/tbody/tr'):
+                data = [str(d.xpath('string(.)')) for d in html_col]
+                if len(data_key) != len(data):
+                    if status['status'] == LogType.WARNING:
+                        status['message'] += '\n{}'.format(data)
+                    else:
+                        status['message'] = 'Failed to crawl {} with len error.\nkey:\n{}\nval:\n{} '.format(
+                            code, data_key, data)
+                        status['status'] = LogType.ERROR
+                    continue
+                data_dict = dict(zip(data_key, data))
+                data_dict['净值日期'] = data_dict['净值日期'][:10]
+                data_dict['hash'] = hashlib.sha3_256((code+data_dict['净值日期']).encode("utf-8")).hexdigest()
+                data_dict['code'] = code
+                data_dict['fund_type'] = FundCode.objects.values_list('fund_type', flat=True).filter(pk=code).first()
+                MONGODB_STOCK_CRAWLER.update_one({'hash': data_dict['hash']}, {'$set': data_dict}, True)
+    except Exception as e:
+        status['message'] = 'Failed to crawl {}. \nError: '.format(code) + e.__repr__()
+        status['status'] = LogType.ERROR
+        return status, False
+    if status['status'] == LogType.WARNING:
         return status, False
     return None, True
