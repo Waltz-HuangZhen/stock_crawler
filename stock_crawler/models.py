@@ -82,7 +82,7 @@ class Log(models.Model):
 
 class FundType(models.Model):
     name = models.CharField(max_length=20)
-    short_name = models.CharField(max_length=20)
+    short_name = models.CharField(max_length=20, null=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
@@ -99,10 +99,10 @@ class FundType(models.Model):
 class FundCode(models.Model):
     code = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=100)
-    short_name = models.CharField(max_length=100)
-    pinyin_name = models.CharField(max_length=200)
-    fund_type = models.CharField(max_length=20)
-    # models.ForeignKey(FundType, related_name='fund_type', on_delete=models.CASCADE)
+    short_name = models.CharField(max_length=100, null=True)
+    pinyin_name = models.CharField(max_length=200, null=True)
+    # fund_type = models.CharField(max_length=20)
+    fund_type = models.ForeignKey(FundType, related_name='fund_type', on_delete=models.CASCADE, null=True)
     is_removed = models.BooleanField(default=False)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
@@ -120,13 +120,29 @@ class FundCode(models.Model):
 class FundCodeDayWorth(models.Model):
     fund_code = models.ForeignKey(FundCode, related_name='fund_code', on_delete=models.CASCADE)
     date = models.DateField(null=False)
+    # 净值
     nav = models.FloatField(null=True)
+    # 累计净值
     accnav = models.FloatField(null=True)
+    # 日增长率
     growth_rate = models.FloatField(verbose_name='Growth Rate(%)', null=True)
+    # 7日年化收益率%
     seven_day_annual_yield = models.FloatField(verbose_name='7-day Annual Yield(%)', null=True)
+    # 最近运作期年化收益率
+    last_operating_period_annual_yield = models.FloatField(
+        verbose_name='Last Operating Period Annual Yield(%)', null=True
+    )
+    # 每百份收益
+    hundred_annual = models.FloatField(verbose_name='100 Annual', null=True)
+    # 每万份收益
     ten_thousands_annual = models.FloatField(verbose_name='10,000 Annual', null=True)
+    # 每百万份收益
+    million_annual = models.FloatField(verbose_name='1,000,000 Annual', null=True)
+    # 申购状态
     purchased = models.CharField(max_length=20, null=True)
+    # 赎回状态
     redemption = models.CharField(max_length=20, null=True)
+    # 分红送配
     dividend = models.CharField(max_length=50, null=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
