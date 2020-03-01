@@ -15,6 +15,7 @@ from stock_crawler.settings import (
 )
 from stock_crawler.models import Log, FundCode, FundCodeDayWorth, FundType
 from stock_crawler.utils.utils import LogType, requests_retry, MONGODB_STOCK_CRAWLER
+from stock_crawler.data.fund import FUND_CODE_CN_MAPPING, mongodb_fund_code_data_formatter
 
 
 @app.task(queue='sc_crawler', soft_time_limit=NORMAL_TASK_SOFTTIMELIMIT, time_limit=NORMAL_TASK_TIMELIMIT)
@@ -227,3 +228,44 @@ def crawl_fund_page_mongodb(code, data_dict=None, url=None):
     if status['status'] == LogType.WARNING:
         return status, False
     return None, True
+
+
+@app.task(queue='sc_fund_page_crawler', soft_time_limit=NORMAL_TASK_SOFTTIMELIMIT, time_limit=NORMAL_TASK_TIMELIMIT)
+@Log.log_this(save_param=True)
+def mv_fund_from_mongodb_to_mysql(codes):
+    status = {
+        'status': LogType.INFO,
+        'message': 'Successfully moved from mongodb into mysql.(total: {}, created: {}, updated: {}, failed: {})'
+    }
+    total_count = 0
+    created_count = 0
+    updated_count = 0
+    code = None
+    nav_date = None
+    try:
+        for code in codes:
+            queryset = MONGODB_STOCK_CRAWLER.find({'code': {'$eq': code}})
+            for fund_data in queryset:
+                reformat_fund_data = {
+                    FUND_CODE_CN_MAPPING[k]: fund_data[k] for k in fund_data.keys()
+                    if FUND_CODE_CN_MAPPING.get(k, None) is not None
+                }
+                nav_date = reformat_fund_data['date']
+                mongodb_fund_code_data_formatter(reformat_fund_data)
+                _, created = FundCodeDayWorth.objects.update_or_create(
+                    fund_code_id=code,
+                    date=reformat_fund_data['date'],
+                    defaults=reformat_fund_data
+                )
+                created_count += int(created)
+                updated_count += int(not created)
+                total_count += 1
+    except Exception as e:
+        status['message'] = status['message'].format(total_count, created_count, updated_count,
+                                                     total_count-created_count-updated_count) + \
+                            '\nFailed to move {} {}. \nError: '.format(code, nav_date) + e.__repr__()
+        status['status'] = LogType.ERROR
+        return status, False
+    status['message'] = status['message'].format(total_count, created_count, updated_count,
+                                                 total_count - created_count - updated_count)
+    return status, True
